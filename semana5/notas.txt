@@ -1,0 +1,47 @@
+id_lote (str): “L-AAAAMM-#####”. Único.
+
+fecha_llegada (date): últimos 18 meses, distribución más densa en meses recientes.
+
+proveedor (cat): 12–20 mineras proveedoras (nombres realistas, no marcas reales).
+
+puerto_origen (cat): {Matarani, Callao, Paita, Arica, Antofagasta, Mejillones}.
+
+mineral (cat): {cobre} 90–95%, {cobre+impurezas} 5–10%.
+
+metodo_transporte (cat): {barco, tren, camión}; barco domina importaciones.
+
+peso_tn (float): 8,000–40,000 tn por lote (log-normal).
+
+ley_cu_pct (float): 18–36% (media 26–28%).
+
+humedad_pct (float): 6–11% (media 8.5%).
+
+recuperacion_pct (float): 93–98% (media 96%).
+
+precio_lme_usd_lb (float): 3.2–5.2 USD/lb, con suave tendencia temporal.
+
+tc_usd_tn (float): cargo tratamiento+refinación por tonelada: 70–130 USD/tn.
+
+costo_logistico_usd_tn (float): 18–48 USD/tn, depende de origen/transporte.
+
+penalidad_as_usd_tn (float): 0–45 USD/tn; ↑ si mineral trae impurezas.
+
+ingreso_neto_usd (float, derivado):
+
+contenido_sec_lb = peso_tn * 2204.62 * (ley_cu_pct/100)
+
+pagable_lb = contenido_sec_lb * (recuperacion_pct/100) * 0.965
+
+ingreso_bruto = pagable_lb * precio_lme_usd_lb
+
+costos = (tc_usd_tn + costo_logistico_usd_tn + penalidad_as_usd_tn) * peso_tn
+
+ingreso_neto_usd = ingreso_bruto – costos (no negativo salvo outliers raros).
+Consistencias:
+
+penalidades mayores si humedad_pct > 9.5% o “impurezas”.
+
+costo_logistico_usd_tn mayor para origenes lejanos y camión.
+
+precio_lme_usd_lb correlacionado por fecha (suavizar con ruido AR(1)).
+Salida: PKL (DataFrame) + CSV opcional.
